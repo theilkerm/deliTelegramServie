@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Service - {{ service.name }} - Deli Telegram Notification Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Service: {{ service.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Service Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ service.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>API Key:</strong></td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm" 
+                                               value="{{ service.api_key }}" readonly>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                onclick="copyToClipboard('{{ service.api_key }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                                                    <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>{{ service.created_at.strftime('%Y-%m-%d') if service.created_at else 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Current Permissions</h6>
+                    <div class="alert alert-info">
+                        <strong>{{ service.authorized_chat_ids|length }}</strong> authorized chats
+                        {% if service.authorized_chat_ids|length > 0 %}
+                            <ul class="mb-0 mt-2">
+                                {% for chat_id in service.authorized_chat_ids %}
+                                    {% for chat in all_chats %}
+                                        {% if chat.id == chat_id %}
+                                                                                 <li>{{ chat.title or chat.username or ("Chat " + chat.chat_id|string) }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                </div>
+                
+                <hr>
+                
+                <form method="POST">
+                    <h6>Select Authorized Chats</h6>
+                    <p class="text-muted">Choose which Telegram chats this service can send notifications to:</p>
+                    
+                    {% if all_chats %}
+                    <div class="row">
+                        {% for chat in all_chats %}
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="chats" 
+                                       value="{{ chat.id }}" id="chat_{{ chat.id }}"
+                                       {% if chat.id in authorized_chat_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="chat_{{ chat.id }}">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-{{ 'user' if chat.chat_type == 'private' else 'users' }} me-2 text-muted"></i>
+                                        <div>
+                                                                                         <strong>{{ chat.title or chat.username or ("Chat " + chat.chat_id|string) }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ chat.chat_type|title }} • ID: {{ chat.chat_id }}
+                                                {% if chat.username %}
+                                                    • @{{ chat.username }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No chats found. You need to add chats first before configuring permissions.
+                        <a href="{{ url_for('main.chats') }}" class="btn btn-sm btn-warning ms-2">
+                            <i class="fas fa-plus me-1"></i>Add Chats
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('main.services') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Services
+                        </a>
+                        <button type="submit" class="btn btn-primary" {% if not all_chats %}disabled{% endif %}>
+                            <i class="fas fa-save me-2"></i>Save Permissions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- API Test Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-paper-plane me-2"></i>Test Notification
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>Test your service configuration by sending a notification:</p>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="testMessage" 
+                                   placeholder="Enter test message..." value="This is a test notification">
+                            <button class="btn btn-success" type="button" onclick="testNotification()">
+                                <i class="fas fa-paper-plane me-2"></i>Send Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="testResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show temporary success message
+        const button = event.target.closest('button');
+        const originalIcon = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalIcon;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+function testNotification() {
+    const message = document.getElementById('testMessage').value;
+    const resultDiv = document.getElementById('testResult');
+    
+    if (!message.trim()) {
+        resultDiv.innerHTML = '<div class="alert alert-warning">Please enter a test message.</div>';
+        return;
+    }
+    
+    resultDiv.innerHTML = '<div class="alert alert-info">Sending test notification...</div>';
+    
+    fetch('/api/notify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': '{{ service.api_key }}'
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                Test notification sent successfully to ${data.recipient_count} chat(s)!
+            </div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error: ${data.error}
+            </div>`;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `<div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            Network error: ${error.message}
+        </div>`;
+    });
+}
+</script>
+{% endblock %}

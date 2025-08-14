@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Chats - Deli Telegram Notification Service{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-comments me-2"></i>Telegram Chats</h1>
+    <div>
+        <a href="{{ url_for('main.add_chat') }}" class="btn btn-success me-2">
+            <i class="fas fa-plus me-2"></i>Add Chat Manually
+        </a>
+        <form method="POST" action="{{ url_for('main.refresh_chats') }}" class="d-inline me-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sync me-2"></i>Refresh Chat List
+            </button>
+        </form>
+        {% if chats %}
+        <form method="POST" action="{{ url_for('main.clear_chats') }}" class="d-inline" 
+              onsubmit="return confirm('Are you sure you want to clear ALL chats? This will also remove chat permissions from all services.')">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Clear All Chats
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if chats %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Available Chats ({{ chats|length }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for chat in chats %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="fas fa-{{ 'user' if chat.chat_type == 'private' else 'users' }}"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-1">{{ chat.title or chat.username or ("Chat " + chat.chat_id|string) }}</h6>
+                                {% if chat.label %}
+                                    <span class="badge bg-warning text-dark mb-2">{{ chat.label }}</span>
+                                {% endif %}
+                                <p class="card-text text-muted mb-2">
+                                    <small>
+                                        <span class="badge bg-secondary">{{ chat.chat_type|title }}</span>
+                                        {% if chat.username %}
+                                            <span class="badge bg-info">@{{ chat.username }}</span>
+                                        {% endif %}
+                                    </small>
+                                </p>
+                                {% if chat.description %}
+                                    <p class="card-text text-muted mb-2">
+                                        <small>{{ chat.description[:60] }}{% if chat.description|length > 60 %}...{% endif %}</small>
+                                    </p>
+                                {% endif %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <strong>Chat ID:</strong> {{ chat.chat_id }}<br>
+                                        <strong>Services:</strong> 0
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                                                         <small class="text-muted">
+                                 Added: {{ chat.created_at.strftime('%Y-%m-%d') if chat.created_at else 'N/A' }}
+                             </small>
+                                                            <a href="{{ url_for('main.edit_chat', chat_id=chat.id) }}" 
+                                   class="btn btn-sm btn-outline-warning" title="Edit Chat">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('main.toggle_chat_tester', chat_id=chat.id) }}" 
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-sm {{ 'btn-success' if chat.is_tester else 'btn-outline-secondary' }}" 
+                                            title="{{ 'Remove from testers' if chat.is_tester else 'Mark as tester' }}">
+                                        <i class="fas fa-vial"></i>
+                                    </button>
+                                </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Chat Statistics -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ chats|selectattr('chat_type', 'equalto', 'private')|list|length }}</h3>
+                <p class="card-text">Private Chats</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ chats|selectattr('chat_type', 'in', ['group', 'supergroup'])|list|length }}</h3>
+                <p class="card-text">Groups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ chats|selectattr('chat_type', 'equalto', 'channel')|list|length }}</h3>
+                <p class="card-text">Channels</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+    <h3 class="text-muted">No Chats Found</h3>
+    <p class="text-muted">No Telegram chats have been added yet. Click the refresh button to fetch chats from your bot.</p>
+    <form method="POST" action="{{ url_for('main.refresh_chats') }}" class="d-inline">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-sync me-2"></i>Refresh Chat List
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Manual Chat Addition -->
+<div class="card mt-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-plus me-2"></i>Manual Chat Addition
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">
+            If the automatic chat refresh doesn't work or you want to add chats manually, you can add them here.
+            You'll need the chat ID from Telegram.
+        </p>
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>How to get a chat ID:</h6>
+            <ol class="mb-0">
+                <li>Add your bot to the chat (group/channel) or start a private conversation</li>
+                <li>Send a message in the chat</li>
+                <li>Use the Telegram Bot API to get updates: <code>https://api.telegram.org/bot&lt;YOUR_BOT_TOKEN&gt;/getUpdates</code></li>
+                <li>Look for the <code>chat.id</code> field in the response</li>
+            </ol>
+        </div>
+        <a href="{{ url_for('main.add_chat') }}" class="btn btn-warning">
+            <i class="fas fa-plus me-2"></i>Add Chat Manually
+        </a>
+        <small class="text-muted d-block mt-2">Click the button above to manually add chats.</small>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="card mt-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-tools me-2"></i>Troubleshooting
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Common Issues:</h6>
+                <ul>
+                    <li><strong>No chats appear:</strong> Make sure your bot is added to groups/channels</li>
+                    <li><strong>Bot kicked from chat:</strong> Remove the chat from the database and re-add it</li>
+                    <li><strong>Permission errors:</strong> Check if the bot has permission to send messages</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Bot Requirements:</h6>
+                <ul>
+                    <li>Bot must be added to the chat</li>
+                    <li>Bot must have permission to send messages</li>
+                    <li>For channels, bot must be an admin</li>
+                    <li>Bot token must be valid and not expired</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

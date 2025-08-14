@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Event History - Deli Telegram Notification Service{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-history me-2"></i>Event History</h1>
+    <div>
+        <span class="badge bg-primary fs-6">Total: {{ total_events }}</span>
+        <span class="badge bg-success fs-6">Success: {{ successful_events }}</span>
+        <span class="badge bg-danger fs-6">Failed: {{ failed_events }}</span>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <!-- Service Statistics -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Service Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if service_stats %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Total</th>
+                                <th>Success</th>
+                                <th>Failed</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in service_stats %}
+                            <tr>
+                                <td><strong>{{ stat.name }}</strong></td>
+                                <td>{{ stat.total_messages }}</td>
+                                <td><span class="badge bg-success">{{ stat.successful_messages }}</span></td>
+                                <td><span class="badge bg-danger">{{ stat.failed_messages }}</span></td>
+                                <td>
+                                    {% if stat.total_messages > 0 %}
+                                        {{ "%.1f"|format((stat.successful_messages / stat.total_messages) * 100) }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No service statistics available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Statistics -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comments me-2"></i>Chat Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if chat_stats %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Chat</th>
+                                <th>Total</th>
+                                <th>Success</th>
+                                <th>Failed</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in chat_stats %}
+                            <tr>
+                                <td><strong>{{ stat.title }}</strong></td>
+                                <td>{{ stat.total_messages }}</td>
+                                <td><span class="badge bg-success">{{ stat.successful_messages }}</span></td>
+                                <td><span class="badge bg-danger">{{ stat.failed_messages }}</span></td>
+                                <td>
+                                    {% if stat.total_messages > 0 %}
+                                        {{ "%.1f"|format((stat.successful_messages / stat.total_messages) * 100) }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No chat statistics available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message History -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Message History ({{ events.total }} total)
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if events.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Service</th>
+                        <th>Chat</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events.items %}
+                    <tr>
+                        <td>
+                            <small class="text-muted">
+                                {{ event.sent_at.strftime('%Y-%m-%d %H:%M:%S') if event.sent_at else 'N/A' }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ event.service_name }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ event.chat_title }}</strong>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 300px;" title="{{ event.message_content }}">
+                                {{ event.message_content }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if event.success %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Success
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Failed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if event.success %}
+                                {% if event.telegram_message_id %}
+                                    <small class="text-muted">Msg ID: {{ event.telegram_message_id }}</small>
+                                {% endif %}
+                            {% else %}
+                                {% if event.error_message %}
+                                    <small class="text-danger" title="{{ event.error_message }}">
+                                        Error: {{ event.error_message[:50] }}{% if event.error_message|length > 50 %}...{% endif %}
+                                    </small>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if events.pages > 1 %}
+        <nav aria-label="Event history pagination">
+            <ul class="pagination justify-content-center">
+                {% if events.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.event_history', page=events.prev_num) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in events.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != events.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.event_history', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if events.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.event_history', page=events.next_num) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No Message History</h3>
+            <p class="text-muted">No messages have been sent yet. Send your first notification to see history here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

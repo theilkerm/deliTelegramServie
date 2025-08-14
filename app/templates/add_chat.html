@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Add Chat - Deli Telegram Notification Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plus me-2"></i>Add Chat Manually
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="chat_id" class="form-label">Chat ID *</label>
+                        <input type="number" class="form-control" id="chat_id" name="chat_id" 
+                               placeholder="Enter Telegram chat ID" required>
+                        <div class="form-text">
+                            The numeric chat ID from Telegram. You can get this from the bot API or by sending a message to the bot.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Chat Title/Name *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               placeholder="Enter chat title or name" required>
+                        <div class="form-text">
+                            The display name for this chat (e.g., "My Group", "John Doe").
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username (Optional)</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="Enter username without @">
+                        <div class="form-text">
+                            The username of the chat (without @ symbol).
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="chat_type" class="form-label">Chat Type</label>
+                        <select class="form-select" id="chat_type" name="chat_type">
+                            <option value="private">Private Chat</option>
+                            <option value="group">Group</option>
+                            <option value="supergroup">Supergroup</option>
+                            <option value="channel">Channel</option>
+                        </select>
+                        <div class="form-text">
+                            The type of Telegram chat.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="label" class="form-label">Label</label>
+                        <input type="text" class="form-control" id="label" name="label" 
+                               placeholder="Enter a short label (e.g., 'TEAM', 'ADMIN', 'ALERTS')">
+                        <div class="form-text">
+                            Optional short label to help identify the chat quickly in the management panel.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                                  placeholder="Enter a description of this chat (e.g., 'Team chat for system alerts', 'Admin notifications')"></textarea>
+                        <div class="form-text">
+                            Optional description to help you remember what this chat is for.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>How to get a chat ID:</h6>
+                        <ol class="mb-0">
+                            <li>Add your bot to the chat (group/channel) or start a private conversation</li>
+                            <li>Send a message in the chat</li>
+                            <li>Use the Telegram Bot API: <code>https://api.telegram.org/bot&lt;YOUR_BOT_TOKEN&gt;/getUpdates</code></li>
+                            <li>Look for the <code>chat.id</code> field in the response</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.chats') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Chats
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Chat
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

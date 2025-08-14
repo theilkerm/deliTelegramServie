@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Service Details - Deli Telegram Notification Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Service Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Service Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ service.name }}" required>
+                        <div class="form-text">
+                            The service name will be prepended to all notifications.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="label" class="form-label">Label</label>
+                        <input type="text" class="form-control" id="label" name="label" 
+                               value="{{ service.label or '' }}"
+                               placeholder="Enter a short label (e.g., 'MON', 'ALERT', 'SYS')">
+                        <div class="form-text">
+                            Optional short label to help identify the service quickly in the management panel.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                                  placeholder="Enter a description of what this service does">{{ service.description or '' }}</textarea>
+                        <div class="form-text">
+                            Optional description to help you remember what this service is for.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Note:</h6>
+                        <ul class="mb-0">
+                            <li>Changing the service name will affect how notifications appear in Telegram</li>
+                            <li>The API key cannot be changed from this form</li>
+                            <li>To manage chat permissions, use the "Edit Permissions" button</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.services') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Services
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Update Service
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
