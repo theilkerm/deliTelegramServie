@@ -52,8 +52,17 @@ def send_telegram_message_async(chat_id, message, bot_token):
 def index():
     """Home page."""
     current_user = get_current_user()
-    services = Service.query.all() if current_user and current_user['authenticated'] else []
-    total_chats = Chat.query.count() if current_user and current_user['authenticated'] else 0
+    
+    # Safely query database, handle case when tables don't exist yet
+    try:
+        services = Service.query.all() if current_user and current_user['authenticated'] else []
+        total_chats = Chat.query.count() if current_user and current_user['authenticated'] else 0
+    except Exception as e:
+        # If database tables don't exist yet, provide empty data
+        logging.warning(f"Database query failed on homepage: {e}")
+        services = []
+        total_chats = 0
+    
     return render_template('index.html', services=services, total_chats=total_chats, current_user=current_user)
 
 @main_bp.route('/login', methods=['GET', 'POST'])
@@ -82,7 +91,13 @@ def logout():
 @login_required
 def services():
     """List all services."""
-    services = Service.query.all()
+    try:
+        services = Service.query.all()
+    except Exception as e:
+        logging.warning(f"Database query failed on services page: {e}")
+        services = []
+        flash('Database not ready yet. Please wait a moment and try again.', 'warning')
+    
     return render_template('services.html', services=services, current_user=get_current_user())
 
 @main_bp.route('/services/add', methods=['GET', 'POST'])
@@ -204,7 +219,13 @@ def delete_service(service_id):
 @login_required
 def chats():
     """List all Telegram chats."""
-    chats = Chat.query.all()
+    try:
+        chats = Chat.query.all()
+    except Exception as e:
+        logging.warning(f"Database query failed on chats page: {e}")
+        chats = []
+        flash('Database not ready yet. Please wait a moment and try again.', 'warning')
+    
     return render_template('chats.html', chats=chats, current_user=get_current_user())
 
 @main_bp.route('/chats/add', methods=['GET', 'POST'])
@@ -300,43 +321,56 @@ def clear_chats():
 @login_required
 def event_history():
     """Show message event history and statistics."""
-    # Get all message events with pagination
-    page = request.args.get('page', 1, type=int)
-    per_page = 50
-    
-    events = MessageEvent.query.order_by(MessageEvent.sent_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    
-    # Get statistics
-    total_events = MessageEvent.query.count()
-    successful_events = MessageEvent.query.filter_by(success=True).count()
-    failed_events = MessageEvent.query.filter_by(success=False).count()
-    
-    # Service statistics
-    service_stats = db.session.query(
-        Service.name,
-        db.func.count(MessageEvent.id).label('total_messages'),
-        db.func.sum(db.case((MessageEvent.success == True, 1), else_=0)).label('successful_messages'),
-        db.func.sum(db.case((MessageEvent.success == False, 1), else_=0)).label('failed_messages')
-    ).join(MessageEvent).group_by(Service.name).all()
-    
-    # Chat statistics
-    chat_stats = db.session.query(
-        Chat.title,
-        db.func.count(MessageEvent.id).label('total_messages'),
-        db.func.sum(db.case((MessageEvent.success == True, 1), else_=0)).label('successful_messages'),
-        db.func.sum(db.case((MessageEvent.success == False, 1), else_=0)).label('failed_messages')
-    ).join(MessageEvent).group_by(Chat.title).all()
-    
-    return render_template('event_history.html', 
-                         events=events,
-                         total_events=total_events,
-                         successful_events=successful_events,
-                         failed_events=failed_events,
-                         service_stats=service_stats,
-                         chat_stats=chat_stats,
-                         current_user=get_current_user())
+    try:
+        # Get all message events with pagination
+        page = request.args.get('page', 1, type=int)
+        per_page = 50
+        
+        events = MessageEvent.query.order_by(MessageEvent.sent_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Get statistics
+        total_events = MessageEvent.query.count()
+        successful_events = MessageEvent.query.filter_by(success=True).count()
+        failed_events = MessageEvent.query.filter_by(success=False).count()
+        
+        # Service statistics
+        service_stats = db.session.query(
+            Service.name,
+            db.func.count(MessageEvent.id).label('total_messages'),
+            db.func.sum(db.case((MessageEvent.success == True, 1), else_=0)).label('successful_messages'),
+            db.func.sum(db.case((MessageEvent.success == False, 1), else_=0)).label('failed_messages')
+        ).join(MessageEvent).group_by(Service.name).all()
+        
+        # Chat statistics
+        chat_stats = db.session.query(
+            Chat.title,
+            db.func.count(MessageEvent.id).label('total_messages'),
+            db.func.sum(db.case((MessageEvent.success == True, 1), else_=0)).label('successful_messages'),
+            db.func.sum(db.case((MessageEvent.success == False, 1), else_=0)).label('failed_messages')
+        ).join(MessageEvent).group_by(Chat.title).all()
+        
+        return render_template('event_history.html', 
+                             events=events,
+                             total_events=total_events,
+                             successful_events=successful_events,
+                             failed_events=failed_events,
+                             service_stats=service_stats,
+                             chat_stats=chat_stats,
+                             current_user=get_current_user())
+    except Exception as e:
+        logging.warning(f"Database query failed on event history page: {e}")
+        flash('Database not ready yet. Please wait a moment and try again.', 'warning')
+        # Return empty data
+        return render_template('event_history.html', 
+                             events=None,
+                             total_events=0,
+                             successful_events=0,
+                             failed_events=0,
+                             service_stats=[],
+                             chat_stats=[],
+                             current_user=get_current_user())
 
 @main_bp.route('/chats/<int:chat_id>/toggle-tester', methods=['POST'])
 @login_required
