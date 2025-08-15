@@ -1,187 +1,131 @@
 # Deli Telegram Notification Service
 
-A centralized notification service for Telegram bots built with Flask. This application allows you to manage multiple services and their permissions to send notifications to specific Telegram chats, eliminating the need to configure bot credentials in multiple applications.
+A centralized notification service for Telegram bots built with Flask. This service allows multiple applications to send notifications through a single Telegram bot without sharing bot credentials.
 
-> ⚠️ **SECURITY WARNING**: This application is designed for development and testing purposes only. It lacks enterprise-grade security features and should NOT be used in production environments without significant security enhancements. See the [Security Considerations](#-security-considerations) section for details.
+## 🚀 Features
 
-## Features
-
+### Core Functionality
+- **Centralized Notifications**: Single endpoint for all applications to send messages
 - **Service Management**: Create and manage multiple services with unique API keys
-- **Chat Management**: Manage Telegram chats (groups, channels, private chats) and their permissions
-- **Secure API**: Cryptographically secure API key generation and authentication
-- **Web Interface**: Beautiful Bootstrap-based admin panel for easy management
-- **Permission Control**: Granular control over which services can send messages to which chats
-- **Asynchronous Notifications**: Non-blocking message delivery to multiple chats
-- **Labels & Descriptions**: Add labels and descriptions to services and chats for better organization
-- **Admin Authentication**: Secure login system to protect the management panel
-- **Direct Telegram API**: Uses direct HTTP requests to Telegram Bot API for reliability
-- **Docker Support**: Easy deployment with Docker and Docker Compose
+- **Chat Management**: Control which Telegram chats each service can send messages to
+- **Admin Panel**: Web-based management interface for services and permissions
 
-## Project Structure
+### Advanced Features
+- **Event History**: Track all message sends with detailed statistics
+- **Tester Chats**: Mark specific chats for testing scenarios
+- **Labels & Descriptions**: Add context to services and chats for better management
+- **Real-time Chat Refresh**: Fetch current chat list from Telegram API
+- **Comprehensive Logging**: Track all operations and message delivery status
 
-```
-/deliTelegramServie
-|-- /app
-|   |-- /templates
-|   |   |-- index.html          # Dashboard home page
-|   |   |-- services.html       # Services listing and management
-|   |   |-- add_service.html    # Add new service form
-|   |   |-- edit_service.html   # Edit service permissions
-|   |   |-- edit_service_details.html # Edit service details
-|   |   |-- chats.html          # Chat management
-|   |   |-- add_chat.html       # Add new chat form
-|   |   |-- edit_chat.html      # Edit chat details
-|   |   |-- login.html          # Admin login page
-|   |-- /auth.py                # Authentication system
-|   |-- /simple_db.py           # JSON-based database system
-|   |-- __init__.py             # Flask app factory
-|   |-- routes.py               # Web routes and API endpoints
-|-- run.py                      # Application entry point
-|-- .env                        # Environment variables
-|-- requirements.txt            # Python dependencies
-|-- Dockerfile                  # Docker container definition
-|-- docker-compose.yml          # Docker Compose configuration
-|-- debug_message.py            # Debug script for testing
-|-- generate_password.py        # Password hash generator
-```
+### Security Features
+- **Admin Authentication**: Protected admin panel with login system
+- **API Key Authentication**: Secure service identification via X-API-KEY header
+- **Session Management**: Secure admin sessions with configurable timeouts
 
-## Prerequisites
+## 🏗️ Architecture
 
-- Python 3.8 or higher (tested with Python 3.13)
-- Telegram Bot Token (get from [@BotFather](https://t.me/botfather))
-- Docker and Docker Compose (for containerized deployment)
+- **Backend**: Flask web framework with SQLAlchemy ORM
+- **Database**: SQLite with proper relational schema
+- **Authentication**: Session-based admin login with password hashing
+- **API**: RESTful notification endpoint with JSON payloads
+- **Telegram Integration**: Direct Bot API calls for reliable message delivery
 
-## Quick Start
+## 📋 Prerequisites
 
-### Option 1: Local Development
+- Python 3.13+
+- Telegram Bot Token
+- Admin credentials
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd deliTelegramServie
-   ```
+## 🛠️ Installation
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure environment**
-   ```bash
-   # Copy .env.example to .env if it exists, or create .env manually
-   # Edit .env file with your Telegram bot token and admin credentials
-   ```
-
-5. **Generate admin password hash**
-   ```bash
-   python generate_password.py
-   # Copy the generated hash to your .env file
-   ```
-
-6. **Run the application**
-   ```bash
-   python run.py
-   ```
-
-7. **Access the web interface**
-   Open your browser and go to `http://localhost:5000`
-
-### Option 2: Docker Deployment
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd deliTelegramServie
-   ```
-
-2. **Configure environment**
-   ```bash
-   # Edit .env file with your Telegram bot token and admin credentials
-   ```
-
-3. **Build and run with Docker Compose**
-   ```bash
-   docker compose up -d
-   ```
-
-4. **Access the web interface**
-   Open your browser and go to `http://localhost:5000`
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file with the following variables:
-
+### 1. Clone the Repository
 ```bash
-# Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN=your_bot_token_here
+git clone <repository-url>
+cd deliTelegramServie
+```
 
-# Flask Configuration
+### 2. Create Virtual Environment
+```bash
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+# or
+source .venv/bin/activate  # Linux/Mac
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Environment Configuration
+Create a `.env` file in the root directory:
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
 FLASK_ENV=development
 SECRET_KEY=your_secret_key_here
-
-# Admin Authentication
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD_HASH=your_generated_password_hash_here
+ADMIN_PASSWORD_HASH=your_hashed_password_here
 ```
 
-### Getting a Telegram Bot Token
-
-1. Start a conversation with [@BotFather](https://t.me/botfather) on Telegram
-2. Send `/newbot` command
-3. Follow the instructions to create your bot
-4. Copy the bot token provided
-
-### Setting Up Admin Authentication
-
-1. Run `python generate_password.py`
-2. Enter your desired admin password
-3. Copy the generated hash to your `.env` file
-4. Use the same username/password to log into the web interface
-
-## Usage
-
-### Web Interface
-
-1. **Dashboard**: Overview of services and chats
-2. **Services**: Manage your notification services with labels and descriptions
-3. **Chats**: View and refresh Telegram chat list, add manual chats
-4. **Add Service**: Create new services with auto-generated API keys
-5. **Edit Service Details**: Modify service name, label, and description
-6. **Edit Permissions**: Configure which chats each service can notify
-
-### Service Labels and Descriptions
-
-- **Labels**: Short identifiers (e.g., "MON", "ALERT", "SYS") for quick recognition
-- **Descriptions**: Detailed explanations of what each service does
-- **Chat Labels**: Organize chats with labels like "TEAM", "ADMIN", "ALERTS"
-
-### API Usage
-
-Send notifications using the `/api/notify` endpoint:
-
+**Generate Password Hash:**
 ```bash
-curl -X POST http://your-domain/api/notify \
-  -H "X-API-KEY: your_api_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Your notification text"}'
+python generate_password.py
 ```
 
-**Headers Required:**
-- `X-API-KEY`: Your service's API key
+### 5. Database Setup
+```bash
+python setup.py
+```
+
+### 6. Run the Application
+```bash
+python run.py
+```
+
+The service will be available at `http://localhost:5000`
+
+## 🚀 Quick Start
+
+### 1. Access Admin Panel
+- Navigate to `http://localhost:5000/login`
+- Login with your admin credentials
+
+### 2. Add Telegram Chats
+- Go to "Chats" section
+- Click "Refresh Chats" to fetch from Telegram
+- Or manually add chats with labels and descriptions
+
+### 3. Create Services
+- Go to "Services" section
+- Add new service with name, label, and description
+- Copy the generated API key
+
+### 4. Configure Permissions
+- Edit each service to select authorized chats
+- Use checkboxes to grant/revoke access
+
+### 5. Send Notifications
+```bash
+curl -X POST http://localhost:5000/api/notify \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: your_api_key_here" \
+  -d '{"message": "Hello from your service!"}'
+```
+
+## 📊 API Reference
+
+### Notification Endpoint
+
+**POST** `/api/notify`
+
+**Headers:**
 - `Content-Type: application/json`
+- `X-API-KEY: <service_api_key>`
 
 **Request Body:**
 ```json
 {
-  "message": "Your notification text here"
+  "message": "Your notification message here"
 }
 ```
 
@@ -189,221 +133,174 @@ curl -X POST http://your-domain/api/notify \
 ```json
 {
   "success": true,
-  "message": "Notification sent successfully",
-  "recipient_count": 3,
-  "successful_sends": 3,
-  "failed_sends": 0,
-  "responses": [
+  "message": "Messages sent successfully",
+  "results": [
     {
       "chat_id": 123456789,
-      "chat_title": "My Group",
+      "chat_title": "Test Group",
       "success": true,
-      "message_id": 987,
+      "telegram_message_id": 456,
       "error": null
     }
   ]
 }
 ```
 
-### Adding Chats
+## 🗄️ Database Schema
 
-1. Add your bot to Telegram groups, channels, or start private conversations
-2. Send a message in the chat
-3. Use the "Refresh Chat List" button in the web interface
-4. The bot will automatically detect and list available chats
-5. Optionally add labels and descriptions to organize your chats
-
-## API Reference
-
-### Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Dashboard home page |
-| `GET` | `/login` | Admin login page |
-| `POST` | `/login` | Admin authentication |
-| `GET` | `/logout` | Admin logout |
-| `GET` | `/services` | List all services |
-| `GET` | `/services/add` | Add new service form |
-| `POST` | `/services/add` | Create new service |
-| `GET` | `/services/<id>/edit` | Edit service permissions |
-| `POST` | `/services/<id>/edit` | Update service permissions |
-| `GET` | `/services/<id>/edit-details` | Edit service details |
-| `POST` | `/services/<id>/edit-details` | Update service details |
-| `GET` | `/chats` | List all chats |
-| `GET` | `/chats/add` | Add new chat form |
-| `POST` | `/chats/add` | Create new chat |
-| `GET` | `/chats/<id>/edit` | Edit chat details |
-| `POST` | `/chats/<id>/edit` | Update chat details |
-| `POST` | `/chats/refresh` | Refresh chat list from Telegram |
-| `POST` | `/chats/clear` | Clear all chats |
-| `POST` | `/api/notify` | Send notification (API endpoint) |
-| `POST` | `/api/test-message` | Test message to specific chat |
-
-### Authentication
-
-The web interface requires admin login, and the `/api/notify` endpoint requires authentication via the `X-API-KEY` header. The API key is automatically generated when you create a service and can be viewed in the services list.
-
-## Database Models
-
-### Service
+### Services Table
 - `id`: Primary key
-- `name`: Service name (unique)
-- `label`: Short identifier for quick recognition
-- `description`: Detailed description of the service
-- `api_key`: Cryptographically secure API key
-- `created_at`: Creation timestamp
-- `updated_at`: Last update timestamp
-- `authorized_chat_ids`: List of authorized chat IDs
+- `name`: Service identifier
+- `label`: Human-readable label
+- `description`: Service description
+- `api_key`: Unique API key for authentication
+- `created_at`, `updated_at`: Timestamps
 
-### Chat
+### Chats Table
 - `id`: Primary key
 - `chat_id`: Telegram chat ID
-- `title`: Chat title/name
+- `title`: Chat title
 - `username`: Chat username (if available)
 - `chat_type`: Type (private, group, supergroup, channel)
-- `label`: Short identifier for quick recognition
-- `description`: Detailed description of the chat
-- `created_at`: Creation timestamp
-- `updated_at`: Last update timestamp
+- `label`: Human-readable label
+- `description`: Chat description
+- `is_tester`: Boolean for test scenarios
+- `created_at`, `updated_at`: Timestamps
 
-## Security Features
+### Message Events Table
+- `id`: Primary key
+- `service_id`: Reference to service
+- `chat_id`: Reference to chat
+- `message_content`: Message text sent
+- `telegram_message_id`: Telegram's message ID
+- `success`: Delivery status
+- `error_message`: Error details if failed
+- `sent_at`: Timestamp
 
-- **Secure API Keys**: Cryptographically secure random generation
-- **Header Authentication**: API key validation via custom HTTP header
-- **Admin Login**: Protected web interface with password hashing
-- **Input Validation**: Comprehensive request validation and sanitization
-- **Error Handling**: Secure error responses without information leakage
-- **Non-root Docker**: Application runs as non-root user in container
+## 🔧 Configuration
 
-## ⚠️ Security Considerations
+### Environment Variables
+- `TELEGRAM_BOT_TOKEN`: Your Telegram bot token
+- `FLASK_ENV`: Environment (development/production)
+- `SECRET_KEY`: Flask secret key for sessions
+- `ADMIN_USERNAME`: Admin login username
+- `ADMIN_PASSWORD_HASH`: Hashed admin password
 
-**This application is designed for development and testing purposes. For production use, consider the following security improvements:**
+### Flask Configuration
+- Session lifetime: 24 hours
+- Secure cookies in production
+- SQLite database in instance folder
 
-### Current Limitations:
-- **JSON Database**: Uses simple file-based storage without encryption
-- **Basic Authentication**: Simple username/password with Werkzeug hashing
-- **No Rate Limiting**: API endpoints lack rate limiting and brute force protection
-- **No HTTPS Enforcement**: No built-in SSL/TLS enforcement
-- **Session Management**: Basic Flask session handling without advanced security features
+## 🧪 Testing
 
-### Production Security Recommendations:
-- **Database Security**: Use PostgreSQL with proper access controls and encryption
-- **Authentication**: Implement OAuth2, JWT tokens, or integrate with enterprise SSO
-- **API Security**: Add rate limiting, request signing, and IP whitelisting
-- **Transport Security**: Enforce HTTPS with proper SSL/TLS configuration
-- **Monitoring**: Implement security logging, intrusion detection, and audit trails
-- **Access Control**: Add role-based access control (RBAC) and multi-factor authentication
-- **Secrets Management**: Use proper secrets management (HashiCorp Vault, AWS Secrets Manager, etc.)
-- **Network Security**: Deploy behind reverse proxy with WAF protection
-
-## Deployment
-
-### Production Considerations
-
-1. **Environment Variables**: Use strong, unique secret keys
-2. **Database**: The JSON-based database is suitable for small to medium deployments
-3. **Reverse Proxy**: Use Nginx or Apache as reverse proxy
-4. **SSL/TLS**: Enable HTTPS for production deployments
-5. **Monitoring**: Implement logging and monitoring solutions
-
-### ⚠️ Production Security Warning
-
-**This application is NOT recommended for production use without significant security enhancements. The current implementation lacks enterprise-grade security features and should only be used in:**
-
-- Development and testing environments
-- Internal networks with restricted access
-- Proof-of-concept demonstrations
-- Learning and educational purposes
-
-**For production deployments, implement the security recommendations listed in the Security Considerations section above.**
-
-### Docker Commands
-
+### Run Test Suite
 ```bash
-# Build and start
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop services
-docker compose down
-
-# Rebuild and restart
-docker compose up -d --build
+python test.py
 ```
 
-## Troubleshooting
+### Send Test Messages
+```bash
+python send_test_messages.py
+```
+
+## 🐳 Docker Deployment
+
+### Build and Run
+```bash
+docker-compose up --build
+```
+
+### Environment Variables
+Create `.env` file for Docker:
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=your_hashed_password
+```
+
+## 📁 Project Structure
+
+```
+deliTelegramServie/
+├── app/
+│   ├── __init__.py          # Flask app factory
+│   ├── models.py            # Database models
+│   ├── routes.py            # Web routes and API endpoints
+│   ├── auth.py              # Authentication logic
+│   └── templates/           # HTML templates
+│       ├── base.html        # Base template
+│       ├── index.html       # Dashboard
+│       ├── login.html       # Admin login
+│       ├── services.html    # Service management
+│       ├── chats.html       # Chat management
+│       └── event_history.html # Message history
+├── config.py                # Configuration classes
+├── requirements.txt         # Python dependencies
+├── setup.py                 # Database initialization
+├── run.py                   # Application entry point
+├── test.py                  # Comprehensive test suite
+├── send_test_messages.py    # Test message sender
+├── generate_password.py     # Password hash generator
+├── Dockerfile               # Docker container
+├── docker-compose.yml       # Docker orchestration
+└── README.md                # This file
+```
+
+## 🔒 Security Considerations
+
+⚠️ **Important Security Note**: This implementation is designed for development and internal use. For production deployment, consider:
+
+- **HTTPS**: Always use HTTPS in production
+- **Strong Passwords**: Use complex admin passwords
+- **API Key Rotation**: Regularly rotate service API keys
+- **Rate Limiting**: Implement rate limiting for API endpoints
+- **Input Validation**: Additional input sanitization
+- **Audit Logging**: Enhanced security event logging
+- **Database Security**: Consider using PostgreSQL with proper access controls
+- **Environment Isolation**: Separate production and development environments
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Bot not responding**: Check bot token and permissions
-2. **No chats appearing**: Ensure bot is added to groups/channels
-3. **Permission errors**: Verify bot has send message permissions
-4. **API key issues**: Regenerate API key if compromised
-5. **Login issues**: Check admin credentials in .env file
+**Database Schema Errors**
+- Run `python setup.py` to recreate database
+- Delete `instance/telegram_notifier.db` and restart
 
-### Debug Tools
+**Telegram API Errors**
+- Verify bot token is correct
+- Ensure bot has permission to send messages
+- Check chat permissions and bot membership
 
-Use the included debug script to test Telegram API connectivity:
-
-```bash
-python debug_message.py
-```
-
-This script will:
-- Test bot token validity
-- Check for available chats
-- Test message sending to a specific chat
+**Authentication Issues**
+- Verify admin credentials in `.env`
+- Check password hash generation
+- Clear browser cookies/sessions
 
 ### Logs
+Check application logs for detailed error information. The service logs all database operations and API calls.
 
-Check application logs for detailed error information:
-
-```bash
-# Docker logs
-docker compose logs deli-telegram-notifier
-
-# Local development
-# Logs appear in console when running python run.py
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
-## License
+## 📄 License
 
-This project is licensed under the AGPL License - see the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-## Support
+## 🆘 Support
 
 For issues and questions:
 1. Check the troubleshooting section
-2. Review the logs for error details
-3. Use the debug script to test connectivity
-4. Open an issue on GitHub
-5. Check [Telegram Bot API documentation](https://core.telegram.org/bots/api)
+2. Review application logs
+3. Verify configuration settings
+4. Create an issue with detailed error information
 
-## Changelog
+---
 
-### v2.0.0
-- Added labels and descriptions for services and chats
-- Enhanced admin authentication system
-- Improved chat refresh functionality using direct Telegram API
-- Added detailed API response tracking
-- Better error handling and debugging tools
-- Updated to Python 3.13 compatibility
-
-### v1.0.0
-- Initial release
-- Service management with secure API keys
-- Chat permission management
-- Web-based admin interface
-- Docker support
-- Asynchronous notification delivery
+**Deli Telegram Notification Service** - Centralized, secure, and reliable Telegram notifications for your applications.
