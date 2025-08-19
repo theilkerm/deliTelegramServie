@@ -40,7 +40,7 @@ A centralized notification service for Telegram bots built with Flask. This serv
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/theilkerm/deliTelegramServie
 cd deliTelegramServie
 ```
 
